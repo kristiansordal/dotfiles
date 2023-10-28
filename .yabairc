@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+set -x
+
+# ====== Variables =============================
+
+declare -A gaps
+declare -A color
+
+# --- normal gap
+gaps["top"]="36"
+
+# gaps["bottom"]="22"
+gaps["left"]="8"
+gaps["right"]="8"
+gaps["inner"]="22"
+gaps["bottom"]="8"
+
+# color["focused"]="0xE0808080"
+# color["normal"]="0x00010101"
+# color["preselect"]=""
+# color["normal"]=""
+# color["focused"]="0xE08ec07c"
+
+# yabai -m config active_window_border_color 0xE08ec07c
+
+# Uncomment to refresh ubersicht widget on workspace change
+# Make sure to replace WIDGET NAME for the name of the ubersicht widget
+#ubersicht_spaces_refresh_command="osascript -e 'tell application id \"tracesOf.Uebersicht\" to refresh widget id \"WIDGET NAME\"'"
+
+# ===== Loading Scripting Additions ============
+
+# See: https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)#macos-big-sur---automatically-load-scripting-addition-on-startup
+sudo yabai --load-sa
+yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+
+# ===== Tiling setting =========================
+
+yabai -m config layout                      bsp
+
+yabai -m config top_padding                 "${gaps["top"]}"
+yabai -m config bottom_padding              "${gaps["bottom"]}"
+yabai -m config left_padding                "${gaps["left"]}"
+yabai -m config right_padding               "${gaps["right"]}"
+yabai -m config window_gap                  "${gaps["inner"]}"
+
+yabai -m config mouse_follows_focus         off
+yabai -m config focus_follows_mouse         off
+
+yabai -m config window_topmost              off
+yabai -m config window_opacity              off
+yabai -m config window_shadow               off
+
+yabai -m config window_border               off
+yabai -m config window_border_width         6
+yabai -m config active_window_border_color  "${color["focused"]}"
+yabai -m config normal_window_border_color  "${color["normal"]}"
+yabai -m config insert_feedback_color       "${color["preselect"]}"
+
+yabai -m config active_window_opacity       1.0
+yabai -m config normal_window_opacity       0.90
+yabai -m config split_ratio                 0.50
+
+yabai -m config auto_balance                off
+
+yabai -m config mouse_modifier              fn
+yabai -m config mouse_action1               move
+yabai -m config mouse_action2               resize
+
+# ===== Rules ==================================
+
+yabai -m rule --add label="Finder" app="^Finder$" title="(Co(py|nnect)|Move|Info|Pref)" manage=off
+yabai -m rule --add label="Safari" app="^Safari$" title="^(General|(Tab|Password|Website|Extension)s|AutoFill|Se(arch|curity)|Privacy|Advance)$" manage=off
+yabai -m rule --add label="macfeh" app="^macfeh$" manage=off
+yabai -m rule --add label="System Settings" app="^System Settings$" title=".*" manage=off
+yabai -m rule --add label="App Store" app="^App Store$" manage=off
+yabai -m rule --add label="Activity Monitor" app="^Activity Monitor$" manage=off
+yabai -m rule --add label="KeePassXC" app="^KeePassXC$" manage=off
+yabai -m rule --add label="Calculator" app="^Calculator$" manage=off
+yabai -m rule --add label="Dictionary" app="^Dictionary$" manage=off
+yabai -m rule --add label="mouse-militants" app="java$" manage=off
+yabai -m rule --add label="mpv" app="^mpv$" manage=off
+yabai -m rule --add label="Software Update" title="Software Update" manage=off
+yabai -m rule --add label="About This Mac" app="System Information" title="About This Mac" manage=off
+yabai -m rule --add label="Python" app="^Python$" manage=off
+yabai -m rule --add label="Alfred Preferences" app="^Alfred Preferences$" manage=off
+yabai -m rule --add title="Select file to save to" manage=off
+yabai -m rule --add label="Reminders" app="^Reminders$" manage=off
+yabai -m rule --add label="choose" app="^choose$" manage=off
+yabai -m rule --add label="Change Foreground Color" app="^GIMP$" title="Change Foreground Color" manage=off grid=160:160:53:80:34:34
+yabai -m rule --add label="New Layer" app="^GIMP$" title="New Layer" manage=off grid=20:20:7:5:5:5
+yabai -m rule --add label="Preferences" app="^Live" title="Preferences" manage=off
+yabai -m rule --add label="Digital Colour Meter" app="^Digital Colour Meter$" manage=off
+yabai -m rule --add title="^Mesh Visualizer$" app="^visualizer$" manage=off
+yabai -m rule --add title="^Mesh Visualizer$" app="^p_visualizer$" manage=off
+yabai -m rule --add title="^Mesh Visualizer$" app="^p_visualizer1$" manage=off
+yabai -m rule --add title="^Mesh Visualizer$" app="^p_visualizer2$" manage=off
+yabai -m rule --add title="^Mesh Visualizer$" app="^p_visualizer3$" manage=off
+# yabai -m rule --add label="Inksacpe Terminal" app="^iTerm2$" title=swag manage=off grid=20:20:6:14:8:4
+yabai -m rule --add label="Inksacpe Terminal" app="^iTerm2$" title=swag manage=off grid=160:160:53:120:54:32
+
+# ===== Signals ================================
+
+yabai -m signal --add event=application_front_switched action="${ubersicht_spaces_refresh_command}"
+yabai -m signal --add event=display_changed action="${ubersicht_spaces_refresh_command}"
+yabai -m signal --add event=space_changed action="${ubersicht_spaces_refresh_command}"
+yabai -m signal --add event=window_created action="${ubersicht_spaces_refresh_command}"
+yabai -m signal --add event=window_destroyed action="${ubersicht_spaces_refresh_command}"
+yabai -m signal --add event=window_focused action="${ubersicht_spaces_refresh_command}"
+yabai -m signal --add event=window_title_changed action="${ubersicht_spaces_refresh_command}"
+# yabai -m window --
+# yabai -m signal --add label=float_next app='^iTerm2$' event=window_created action='yabai -m signal --remove float_next; yabai -m window $YABAI_WINDOW_ID --toggle float'
+
+# [{
+#     "index":0,
+# 	"app":"^iTerm 2$",
+# 	"title":"inkscapeterminal",
+# 	"grid":"1:3:0:0:2:1"
+# }]
+
+set +x
