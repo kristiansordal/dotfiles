@@ -7,6 +7,7 @@ fi
 
 # export DBUS_SESSION_BUS_ADDRESS="unix:path=$DBUS_LAUNCHD_SESSION_BUS_SOCKET"
 
+export AOC_SESSION="53616c7465645f5ff24cc4c3ad8ebf13d5d53654e9796a46151f8cb026018769a93b279241ac07277389c6b8ee78cdd789c30a6aa5f8e36dc1fd1b2b91e1a819"
 export PATH="usr/bin/clang:$PATH"
 export PATH="/usr/bin/gcc:$PATH"
 export PATH="/opt/homebrew/bin/g++-12:$PATH" # export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
@@ -61,7 +62,7 @@ alias inf234='cd ~/dev/uib/fall23/inf234'
 alias mat221='cd ~/dev/uib/fall23/mat221'
 alias obs='~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/UiB'
 alias ranger='source ranger'
-alias g++='/opt/homebrew/Cellar/gcc/13.1.0/bin/g++-13 -std=c++20'
+alias g++='/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20'
 
 # vim mode
 set -o vi

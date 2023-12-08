@@ -9,26 +9,23 @@ lvim.keys.normal_mode["<leader>gt"] = ":ZenMode<cr>"
 lvim.keys.normal_mode["<leader>zz"] = ":wqa<cr>"
 lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
 lvim.keys.normal_mode["<leader>j"] = "<Plug>(VM-Add-Cursor-Down)"
--- lvim.keys.normal_mode["<leader>tt"] = ":!zathura"
--- lvim.keys.normal_mode["<leader>tt"] = ":!zathura %:r.pdf<CR>"
 lvim.keys.normal_mode["<leader>tt"] = ":!zathura %:r.pdf&;disown<cr>"
 lvim.keys.normal_mode["<leader>tc"] = ":!typst compile %:r.typ<cr>"
--- "!zathura '%<'.pdf&;disown<cr>"
-lvim.keys.normal_mode["<leader>k"] = "<Plug>(VM-Add-Cursor-Up)"
 lvim.keys.normal_mode["<leader>k"] = "<Plug>(VM-Add-Cursor-Up)"
 lvim.keys.normal_mode["<S-l>"] = ":bn<CR>"
 lvim.keys.normal_mode["<S-h>"] = ":bp<CR>"
 lvim.keys.normal_mode[";"] = "$"
 lvim.keys.normal_mode['gd'] = ":lua vim.lsp.buf.definition()<CR>"
-lvim.keys.normal_mode['<leader>df'] = ':!gradle run<CR>'
+lvim.keys.normal_mode['<F1>'] = ":lua require'dap'.continue()<CR>"
+lvim.keys.normal_mode['<F2>'] = ":lua require'dap'.step_over()<CR>"
+lvim.keys.normal_mode['<F3>'] = ":lua require'dap'.step_into()<CR>"
+lvim.keys.normal_mode['<F4>'] = ":lua require'dap'.toggle_breakpoint()<CR>"
 
 
 lvim.builtin.alpha.active = true
 lvim.builtin.alpha.mode = "dashboard"
 lvim.builtin.terminal.active = true
 lvim.builtin.nvimtree.setup.view.side = "left"
--- lvim.builtin.nvimtree.show_icons.git = 0
--- lvim.builtin.dap.active = true
 lvim.builtin.autopairs.disable_filetype = { "*.tex" }
 lvim.builtin.project.manual_mode = true
 
@@ -73,18 +70,18 @@ lvim.builtin.treesitter.ensure_installed = {
 
 local ok, copilot = pcall(require, "copilot")
 if not ok then
-  return
+    return
 end
 
 copilot.setup {
-  suggestion = {
-    keymap = {
-      accept = "<c-l>",
-      next = "<c-j>",
-      prev = "<c-k>",
-      dismiss = "<c-h>",
+    suggestion = {
+        keymap = {
+            accept = "<c-l>",
+            next = "<c-j>",
+            prev = "<c-k>",
+            dismiss = "<c-h>",
+        },
     },
-  },
 }
 
 local opts = { noremap = true, silent = true }
@@ -134,7 +131,9 @@ dap.configurations.cpp = {
             local fileName = vim.fn.expand("%:t:r")
             -- create this directory
             os.execute("mkdir -p " .. "bin")
-            local cmd = "!/opt/homebrew/Cellar/gcc/13.1.0/bin/g++-13 -std=c++20 -g % -o bin/" .. fileName
+            -- local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -ld_classic -g % -o bin/" .. fileName
+            local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
+                fileName
 
             -- First, compile it
             vim.cmd(cmd)
@@ -192,6 +191,9 @@ local opts = {
 }
 
 require("lvim.lsp.manager").setup("clangd", opts)
+require('lspconfig')['marksman'].setup {
+    filetypes = { 'md' }
+}
 require('lspconfig')['hls'].setup {
     filetypes = { 'haskell', 'lhaskell', 'cabal' },
 }
@@ -285,8 +287,6 @@ require("lvim.lsp.manager").setup("omnisharp", csopts)
 
 -- Additional Plugins
 lvim.plugins = {
-    { 'junegunn/goyo.vim' },
-    -- { 'flazz/vim-colorschemes' },
     {
         "lervag/vimtex",
         config = function()
@@ -297,7 +297,6 @@ lvim.plugins = {
     { 'mg979/vim-visual-multi' },
     { 'honza/vim-snippets' },
     { 'sainnhe/everforest' },
-    { 'epwalsh/obsidian.nvim' },
     { 'preservim/vim-markdown' },
     { 'godlygeek/tabular' },
     { 'sainnhe/gruvbox-material' },
@@ -324,36 +323,60 @@ lvim.plugins = {
             window = { height = 0.9 }
         }
     },
-    { "kaarmu/typst.vim"},
     {
-      "folke/todo-comments.nvim",
-      dependencies = { "nvim-lua/plenary.nvim" },
-      opts = {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-      }
-    },{
+        "folke/twilight.nvim",
+        opts = {
+            dimming = {
+                alpha = 0.5, -- amount of dimming
+                -- we try to get the foreground from the highlight groups or fallback color
+                color = { "Normal", "#ffffff" },
+                term_bg = "#000000", -- if guibg=NONE, this will be used to calculate text color
+                inactive = false,    -- when true, other windows will be fully dimmed (unless they contain the same buffer)
+            },
+            context = 15,            -- amount of lines we will try to show around the current line
+            treesitter = true,       -- use treesitter when available for the filetype
+            -- treesitter is used to automatically expand the visible text,
+            -- but you can further control the types of nodes that should always be fully expanded
+            expand = { -- for treesitter, we we always try to expand to the top-most ancestor with these types
+                "function",
+                "method",
+                "table",
+                "if_statement",
+            },
+            exclude = {}, -- exclude these filetypes
+        }
+    },
+
+    { "kaarmu/typst.vim" },
+    {
+        "folke/todo-comments.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        opts = {
+            -- your configuration comes here
+            -- or leave it empty to use the default settings
+            -- refer to the configuration section below
+        }
+    }, {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
     event = "InsertEnter",
-  },
-  {
-    "zbirenbaum/copilot-cmp",
-    after = { "copilot.lua" },
-    config = function()
-      require("copilot_cmp").setup()
-    end,
-  },
-
+},
+    {
+        "zbirenbaum/copilot-cmp",
+        after = { "copilot.lua" },
+        config = function()
+            require("copilot_cmp").setup()
+        end,
+    },
 }
 
-require'lspconfig'.typst_lsp.setup{
-	settings = {
-		exportPdf = "onType" -- Choose onType, onSave or never.
+require 'lspconfig'.typst_lsp.setup {
+    settings = {
+        exportPdf = "onType" -- Choose onType, onSave or never.
         -- serverPath = "" -- Normally, there is no need to uncomment it.
-	}
+    }
 }
+
 
 
 local colors = {
@@ -422,7 +445,7 @@ require('gruvbox').setup {
         IlluminatedWordText = { undercurl = true, bold = true },
         IlluminatedWordRead = { undercurl = true, bold = true },
         IlluminatedWordWrite = { undercurl = true, bold = true },
-        
+
         -- Change color of operators
         Operator = { bg = "", fg = "#83a598", bold = false, italic = false },
         Function = { bg = "", fg = "#b8bb26", bold = false },
@@ -451,42 +474,31 @@ vim.opt["foldenable"] = false
 vim.opt["foldlevel"] = 99
 vim.opt["foldexpr"] = "nvim_treesitter#foldexpr()"
 
-lvim.autocommands = {
-    {
-        "BufWinEnter",
-        {   pattern = {"*.typ"},
-            command = "setlocal wrap"
-        },
-        "BufWinEnter",
-        {   pattern = {"*.tex"},
-            command = "setlocal wrap | set foldexpr=vimtex#fold#level(v:lnum)"
-        }
-}
-}
--- vim.api.nvim_create_autocmd("BufWinEnter", {
---     pattern = '*.hs',
---     command = "setlocal tabstop=2",
--- })
 
--- vim.api.nvim_create_autocmd("BufEnter", {
---     pattern = '*.hs',
---     command = "setlocal shiftwidth=2",
--- })
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    pattern = '*.hs',
+    command = "setlocal tabstop=2",
+})
 
--- vim.api.nvim_create_autocmd("BufWinEnter", {
---     pattern = '*.tex',
---     command = "set wrap",
--- })
+vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = '*.hs',
+    command = "setlocal shiftwidth=2",
+})
 
--- vim.api.nvim_create_autocmd("BufWinEnter", {
---     pattern = '*.tex',
---     command = "set foldexpr=vimtex#fold#level(v:lnum)",
--- })
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    pattern = '*.tex',
+    command = "set wrap",
+})
 
--- vim.api.nvim_create_autocmd("BufWinEnter", {
---     pattern = '*.tex',
---     command = "set foldtext=vimtex#fold#text()",
--- })
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    pattern = '*.tex',
+    command = "set foldexpr=vimtex#fold#level(v:lnum)",
+})
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    pattern = '*.tex',
+    command = "set foldtext=vimtex#fold#text()",
+})
 
 
 -- LaTeX Settings
@@ -513,7 +525,6 @@ vim.cmd("let g:typst_pdf_viewer='zathura'")
 -- Lualine
 lvim.builtin.lualine.options = {
     disabled_filetypes = { "", "tex" }
-
 }
 -- lvim.builtin.lualine.options.section_separators = w
 -- Snippets
@@ -1790,7 +1801,7 @@ ls.add_snippets("tex", {
             })
         , { condition = tex.in_mathzone }),
     s("on",
-        fmt("\\mathcal{{O}}({1})",
+        fmt("\\mathcal{{O}}\\left({1}\\right)",
             {
                 i(1),
             })
@@ -2292,97 +2303,19 @@ ls.add_snippets("tex", {
     key = "tex_auto"
 })
 
--- Check if we are in math mode
-function typst_math_zone()
-    local line = vim.fn.line(".")
-    local col = vim.fn.col(".")
-    local current_line = vim.fn.getline(line)
+function math_zone()
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local line = vim.api.nvim_get_current_line()
 
-    -- Check for inline math $ math_goes_here $
-    if current_line:match("%$.-%$") then
-        local math_start, math_end = current_line:find("%$.-%$")
-        if math_start and col >= math_start and col <= math_end then
-            return true
-        end
-    end
+    local before_cursor = line:sub(1, cursor[2])
+    local after_cursor = line:sub(cursor[2] + 1)
 
-    return false
+    local _, start_idx = before_cursor:find("%$")
+    local end_idx, _ = after_cursor:find("%$")
+
+    return start_idx and end_idx
 end
 
-ls.add_snippets("typst", {
-    -- MATH SNIPPET
-    s("dm", {
-        t({ "$ " }),
-        f(function(_, snip)
-            return snip.env.TM_SELECTED_TEXT[1] or {}
-        end, {}),
-        i(1),
-        t({ " $" }),
-    }),
-    s("mk", {
-        t({ "$" }),
-        f(function(_, snip)
-            return snip.env.TM_SELECTED_TEXT[1] or {}
-        end, {}),
-        i(1),
-        t({ "$" }),
-    }),
-    s("//",
-        fmt("frac({1},{2})",
-            { i(1), i(2) }),
-        { condition = typst_math_zone }),
-    
-    s({ trig = "(%d-[\\]?%a-)/(%d-[\\]?%a-)%s", regTrig = true }, {
-        f(function(_, snip)
-            return "frac(" .. snip.captures[1] .. ", " .. snip.captures[2] .. ")"
-        end, {})
-    }, { condition = typst_math_zone }),
-
-    ls.parser.parse_snippet(
-        { trig = "_", wordTrig = false },
-        "_{$1}"
-    ),
-
-    s({ trig = "(%a)(%d)%s", regTrig = true }, {
-        f(function(_, snip)
-            return snip.captures[1] .. "_{" .. snip.captures[2] .. "} "
-        end, {})
-    }, { condition = tex.in_mathzone }),
-
-    -- STYLE SNIPPETS
-    -- Bold
-    s("bf", {
-        t("*"),
-        f(function(_, snip)
-            return snip.env.TM_SELECTED_TEXT[1] or {}
-        end, {}),
-        i(1),
-        t("*")
-    }),
-    
-    -- Italic
-    s("ita", {
-        t("_"),
-        f(function(_, snip)
-            return snip.env.TM_SELECTED_TEXT[1] or {}
-        end, {}),
-        i(1),
-        t("_")
-    }),
-
-    -- s("ul", {
-    --     t("\\underline{"),
-    --     f(function(_, snip)
-    --         return snip.env.TM_SELECTED_TEXT[1] or {}
-    --     end, {}),
-    --     i(1),
-    --     t("}")
-    -- }, { condition = tex.in_text }),
-
-}, {
-    type = "autosnippets",
-    key = "typst_auto"
-})
 ls.add_snippets("haskell", {
     s({ trig = "sd", wordTrig = true }, {
         t("->"),
@@ -2448,13 +2381,289 @@ ls.add_snippets("python", {
 })
 
 ls.add_snippets("markdown", {
-    s("ref", {
-        t("[["),
+
+    s("st", {
+        t({ "\\sqrt{" }),
         i(1),
-        t("|"),
-        i(2),
-        t("]]")
+        t({ "}" })
+    }, { condition = math_zone }),
+
+    -- GREEK LETTERS
+    s({ trig = "alph", wordTrig = false }, {
+        t("\\alpha"),
+    }, { condition = math_zone }),
+
+
+    ls.parser.parse_snippet(
+        { trig = "pc", wordTrig = false },
+        "\\%"
+    ),
+
+    s({ trig = "beta", wordTrig = false }, {
+        t("\\beta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "gam", wordTrig = false }, {
+        t("\\gamma"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Gam", wordTrig = false }, {
+        t("\\Gamma"),
+    }, { condition = math_zone }),
+
+    s({ trig = "del", wordTrig = false }, {
+        t("\\delta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Del", wordTrig = false }, {
+        t("\\Delta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "eps", wordTrig = false }, {
+        t("\\epsilon"),
+    }, { condition = math_zone }),
+
+    s({ trig = "veps", wordTrig = false }, {
+        t("\\varepsilon"),
+    }, { condition = math_zone }),
+
+    s({ trig = "zet", wordTrig = false }, {
+        t("\\zeta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "tht", wordTrig = false }, {
+        t("\\theta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Tht", wordTrig = false }, {
+        t("\\Theta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "vtht", wordTrig = false }, {
+        t("\\vartheta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "iota", wordTrig = false }, {
+        t("\\iota"),
+    }, { condition = math_zone }),
+
+    s({ trig = "kap", wordTrig = false }, {
+        t("\\kappa"),
+    }, { condition = math_zone }),
+
+    s({ trig = "lam", wordTrig = false }, {
+        t("\\lambda"),
+    }, { condition = math_zone }),
+
+    s({ trig = "tar", wordTrig = false }, {
+        t("\\star"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Lam", wordTrig = false }, {
+        t("\\Lambda"),
+    }, { condition = math_zone }),
+
+    s({ trig = "mu", wordTrig = false }, {
+        t("\\mu"),
+    }, { condition = math_zone }),
+
+    s({ trig = "nu", wordTrig = false }, {
+        t("\\nu"),
+    }, { condition = math_zone }),
+
+    s({ trig = "xi", wordTrig = false }, {
+        t("\\Xi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "pi", wordTrig = false }, {
+        t("\\pi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Pi", wordTrig = false }, {
+        t("\\Pi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "rho", wordTrig = false }, {
+        t("\\rho"),
+    }, { condition = math_zone }),
+
+    s({ trig = "vrho", wordTrig = false }, {
+        t("\\varrho"),
+    }, { condition = math_zone }),
+
+    s({ trig = "tau", wordTrig = false }, {
+        t("\\tau"),
+    }, { condition = math_zone }),
+
+    s({ trig = "ups", wordTrig = false }, {
+        t("\\upsilon"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Ups", wordTrig = false }, {
+        t("\\Upsilon"),
+    }, { condition = math_zone }),
+
+    s({ trig = "ph", wordTrig = false }, {
+        t("\\phi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Ph", wordTrig = false }, {
+        t("\\Phi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "vphi", wordTrig = false }, {
+        t("\\varphi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "chi", wordTrig = false }, {
+        t("\\chi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "psi", wordTrig = false }, {
+        t("\\psi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Psi", wordTrig = false }, {
+        t("\\psi"),
+    }, { condition = math_zone }),
+
+    s({ trig = "omg", wordTrig = false }, {
+        t("\\omega"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Omg", wordTrig = false }, {
+        t("\\Omega"),
+    }, { condition = math_zone }),
+
+    s({ trig = "sig", wordTrig = false }, {
+        t("\\sigma"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Sig", wordTrig = false }, {
+        t("\\Sigma"),
+    }, { condition = math_zone }),
+
+
+    s("iff", {
+        t("\\iff"),
+    }, { condition = math_zone }),
+    -- Infinity
+    s("inf", {
+        t({ "\\infty" })
+    }, { condition = math_zone }),
+    s("iinf", {
+        t({ "∞" })
     }),
+
+    -- Negative Infinity
+    s("minf", {
+        t({ "-\\infty" })
+    }, { condition = math_zone }),
+
+    s({ trig = "tht", wordTrig = false }, {
+        t("\\theta"),
+    }, { condition = math_zone }),
+
+    s({ trig = "Tht", wordTrig = false }, {
+        t("\\Theta"),
+    }, { condition = math_zone }),
+
+    s("qu", {
+        t({ "\\quad" }),
+    }, { condition = math_zone }),
+
+    s("To", {
+        t({ "\\Rightarrow" }),
+    }, { condition = math_zone }),
+    s("to", {
+        t({ "\\rightarrow" }),
+    }, { condition = math_zone }),
+
+    -- Cdots
+    s("c...", {
+        t({ "\\cdots " })
+    }, { condition = math_zone }),
+
+    s("l...", {
+        t({ "\\ldots " })
+    }, { condition = math_zone }),
+
+    s("v...", {
+        t({ "\\vdots " })
+    }, { condition = math_zone }),
+
+    s("d...", {
+        t({ "\\ddots " })
+    }, { condition = math_zone }),
+    s("...", {
+        t({ "\\dots " })
+    }, { condition = math_zone }),
+    -- Less than
+    s("leq", {
+        t({ "\\leq" }),
+    }, { condition = math_zone }),
+
+    -- Greater than
+    s("geq", {
+        t({ "\\geq" }),
+    }, { condition = math_zone }),
+
+    -- Not equal to
+    s("!=", {
+        t({ "\\neq" }),
+    }, { condition = math_zone }),
+    -- Left right brackets
+    s({ trig = "lrb", wordTrig = false }, {
+        t({ "\\left[ " }),
+        f(function(_, snip)
+            return snip.env.TM_SELECTED_TEXT[1] or {}
+        end, {}),
+        i(1),
+        t({ " \\right]" }),
+    }, { condition = math_zone }),
+
+    -- Left right curly braces
+    s({ trig = "lrc", wordTrig = false }, {
+        t({ "\\left\\{ " }),
+        f(function(_, snip)
+            return snip.env.TM_SELECTED_TEXT[1] or {}
+        end, {}),
+        i(1),
+        t({ " \\right\\}" }),
+    }, { condition = math_zone }),
+    s({ trig = "(%a)(%d)%s", regTrig = true }, {
+        f(function(_, snip)
+            return snip.captures[1] .. "_{" .. snip.captures[2] .. "} "
+        end, {})
+    }, { condition = math_zone }),
+    -- Square
+    s({ trig = "sr", wordTrig = false }, {
+        t("^2")
+    }, { condition = math_zone }),
+
+    -- Cube
+    s({ trig = "cub", wordTrig = false }, {
+        t("^3")
+    }, { condition = math_zone }),
+    -- Log
+    s("log", {
+        t({ "\\log" }),
+    }, { condition = math_zone }),
+    -- Fraction that allows for writing 5/4 and ending up with \frac{5}{4}
+    s({ trig = "(%d-[\\]?%a-)/(%d-[\\]?%a-)%s", regTrig = true }, {
+        f(function(_, snip)
+            return "\\frac{" .. snip.captures[1] .. "}{" .. snip.captures[2] .. "} "
+        end, {})
+    }, { condition = math_zone }),
+    -- Fraction
+    s("//",
+        fmt("\\frac{{{1}}}{{{2}}}",
+            { i(1), i(2) })
+        , { condition = math_zone }),
+    -- Multiply
+    s("dot", {
+        t({ "\\cdot " })
+    }, { condition = math_zone }),
     s("link", {
         t("["),
         i(1),
@@ -2462,16 +2671,64 @@ ls.add_snippets("markdown", {
         i(2),
         t(")")
     }),
-    s("cd",
-        fmt([[
-```{1}
-{2}
-```
-        ]],
-            {
-                c(1, { t("Haskell"), t("Java"), t("Python") }),
-                i(2)
-            })),
+    s("km", {
+        t("`"),
+        f(function(_, snip)
+            return snip.env.TM_SELECTED_TEXT[1] or {}
+        end, {}),
+        i(1),
+        t("`")
+    }, { condition = tex.in_text }),
+
+    -- Set theory symbols
+    s({ trig = "cup", wordTrig = true }, {
+        t("\\cup"),
+    }, { condition = math_zone }),
+    s({ trig = "cap", wordTrig = true }, {
+        t("\\cap"),
+    }, { condition = math_zone }),
+    s({ trig = "subeq", wordTrig = true }, {
+        t("\\subseteq"),
+    }, { condition = math_zone }),
+    s({ trig = "supeq", wordTrig = true }, {
+        t("\\supseteq"),
+    }, { condition = math_zone }),
+    s({ trig = "subs", wordTrig = true }, {
+        t("\\subset"),
+    }, { condition = math_zone }),
+    s({ trig = "sups", wordTrig = true }, {
+        t("\\supset"),
+    }, { condition = math_zone }),
+    s({ trig = "varn", wordTrig = true }, {
+        t("\\varnothing"),
+    }, { condition = math_zone }),
+    s({ trig = "cong", wordTrig = true }, {
+        t("\\cong"),
+    }, { condition = math_zone }),
+    s("inn", {
+        t({ "\\in" })
+    }, { condition = math_zone }),
+    s("minn", {
+        t({ "∈" })
+    }),
+    s("mninn", {
+        t({ "∉" })
+    }),
+    s("fra", {
+        t("\\forall"),
+    }, { condition = math_zone }),
+    s("mfra", {
+        t("∀"),
+    }),
+    s("emset", {
+        t("⦰"),
+    }),
+    s("msubeq", {
+        t("⊆"),
+    }),
+    s({ trig = "setm", wordTrig = false }, {
+        t("\\setminus")
+    }, { condition = math_zone }),
 
     -- Bold
     s("bf", {
@@ -2491,6 +2748,41 @@ ls.add_snippets("markdown", {
         t("_")
     }, { condition = tex.in_text }),
 
+
+    -- Power
+    s({ trig = "pow", wordTrig = false }, {
+        t("^{"),
+        i(1),
+        t("}")
+    }, { condition = math_zone }),
+
+    -- Absolute value
+    s({ trig = "abs", wordTrig = false }, {
+        t({ "\\left| " }),
+        f(function(_, snip)
+            return snip.env.TM_SELECTED_TEXT[1] or {}
+        end, {}),
+        i(1),
+        t({ " \\right|" }),
+    }, { condition = math_zone }),
+
+    -- Big o runtime
+    s("on",
+        fmt("\\mathcal{{O}}\\left({1}\\right)",
+            {
+                i(1),
+            })
+        , { condition = math_zone }),
+
+    -- Text in math zone
+    s("tt", {
+        t("\\text{"),
+        f(function(_, snip)
+            return snip.env.TM_SELECTED_TEXT[1] or {}
+        end, {}),
+        i(1),
+        t("}")
+    }, { condition = math_zone }),
     -- Italic
     s("ita", {
         t("*"),
@@ -2502,9 +2794,6 @@ ls.add_snippets("markdown", {
     }, { condition = tex.in_text }),
     s({ trig = "lam", wordTrig = false }, {
         t("\\lambda"),
-    }),
-    s({ trig = "alph", wordTrig = false }, {
-        t("\\alpha"),
     }),
     s("dm", {
         t({ "$$" }),
@@ -2608,6 +2897,13 @@ ls.add_snippets("cpp", {
     }),
     s({ trig = "svec", wordTrig = false }, {
         t({ "std::vector<" }),
+        i(1),
+        t({ ">" }),
+
+    }),
+
+    s({ trig = "vvec", wordTrig = false }, {
+        t({ "vector<" }),
         i(1),
         t({ ">" }),
 
