@@ -60,9 +60,12 @@ alias inf329='cd ~/dev/uib/fall23/inf329'
 alias inf339='cd ~/dev/uib/fall23/inf339A'
 alias inf234='cd ~/dev/uib/fall23/inf234'
 alias mat221='cd ~/dev/uib/fall23/mat221'
+alias inf236='cd ~/dev/uib/spring24/inf236'
+alias inf237='cd ~/dev/uib/spring24/inf237'
 alias obs='~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/UiB'
 alias ranger='source ranger'
 alias g++='/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20'
+alias clang='/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20'
 
 # vim mode
 set -o vi
