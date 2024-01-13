@@ -10,7 +10,7 @@ local mason_path = vim.fn.glob(vim.fn.stdpath "data" .. "/mason")
 local launcher_path = vim.fn.glob(mason_path .. "/packages/jdtls/plugins/org.eclipse.equinox.launcher_*.jar")
 if #launcher_path == 0 then
     launcher_path = vim.fn.glob(mason_path .. "/packages/jdtls/plugins/org.eclipse.equinox.launcher_*.jar", true, true)
-    [1]
+        [1]
 end
 local CONFIG = "linux"
 if vim.fn.has "mac" == 1 then

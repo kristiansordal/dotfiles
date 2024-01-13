@@ -1,30 +1,38 @@
 lvim.log.evel               = "warn"
-lvim.format_on_save         = true
+lvim.format_on_save         = false
 lvim.transparent_window     = true
 lvim.lsp.document_highlight = false
 vim.cmd("set bg=dark")
+vim.cmd("set nocursorline")
 vim.opt.shortmess:append "S"
 
------------- KEYBINDS ------------
-lvim.leader                             = "space"
-lvim.keys.normal_mode["<leader>gt"]     = ":ZenMode<cr>"
-lvim.keys.normal_mode["<leader>zz"]     = ":wqa<cr>"
-lvim.keys.normal_mode["<C-s>"]          = ":w<cr>"
-lvim.keys.normal_mode["<leader>j"]      = "<Plug>(VM-Add-Cursor-Down)"
-lvim.keys.normal_mode["<leader>tt"]     = ":!zathura %:r.pdf&;disown<cr>"
-lvim.keys.normal_mode["<leader>tc"]     = ":!typst compile %:r.typ<cr>"
-lvim.keys.normal_mode["<leader>k"]      = "<Plug>(VM-Add-Cursor-Up)"
-lvim.keys.normal_mode["<S-l>"]          = ":bn<CR>"
-lvim.keys.normal_mode["<S-h>"]          = ":bp<CR>"
-lvim.keys.normal_mode[";"]              = "$"
-lvim.keys.normal_mode['gd']             = ":lua vim.lsp.buf.definition()<CR>"
-lvim.keys.normal_mode['<F1>']           = ":lua require'dap'.continue()<CR>"
-lvim.keys.normal_mode['<F2>']           = ":lua require'dap'.step_over()<CR>"
-lvim.keys.normal_mode['<F3>']           = ":lua require'dap'.step_into()<CR>"
-lvim.keys.normal_mode['<F4>']           = ":lua require'dap'.toggle_breakpoint()<CR>"
+---------- KEYBINDS ------------
+lvim.leader                         = "space"
+lvim.keys.normal_mode["<leader>gt"] = ":zenmode<cr>"
+lvim.keys.normal_mode["<leader>zz"] = ":wqa<cr>"
+lvim.keys.normal_mode["<c-s>"]      = ":w<cr>"
+lvim.keys.normal_mode["<leader>j"]  = "<Plug>(VM-Add-Cursor-Down)"
+lvim.keys.normal_mode["<leader>k"]  = "<Plug>(VM-Add-Cursor-Up)"
+lvim.keys.normal_mode["<s-l>"]      = ":bn<cr>"
+lvim.keys.normal_mode["<s-h>"]      = ":bp<cr>"
+lvim.keys.normal_mode[";"]          = "$"
+lvim.keys.normal_mode['gd']         = ":lua vim.lsp.buf.definition()<cr>"
+lvim.keys.normal_mode['<f1>']       = ":lua require'dap'.continue()<cr>"
+lvim.keys.normal_mode['<f2>']       = ":lua require'dap'.step_over()<cr>"
+lvim.keys.normal_mode['<f3>']       = ":lua require'dap'.step_into()<cr>"
+lvim.keys.normal_mode['<f4>']       = ":lua require'dap'.toggle_breakpoint()<cr>"
 ---------------------------------
+---
+local wk                            = require("which-key")
+wk.register({
+    d = {
+        f = { "<cmd>CMakeDebug<CR>", "Debug CMake Project" },
+        v = { "<cmd>CMakeBuild<CR>", "Build CMake Project" },
+        z = { "<cmd>CMakeSelectCwd<CR>", "Select CMake Work Directory" }
+    }
+}, { prefix = "<leader>" })
 
------------- LUNARVIM ------------
+------------ lunarvim ------------
 lvim.builtin.alpha.active               = true
 lvim.builtin.alpha.mode                 = "dashboard"
 lvim.builtin.terminal.active            = true
@@ -38,9 +46,8 @@ lvim.builtin.lualine.options            = {
     always_divide_middle = false,
 }
 lvim.builtin.lualine.sections           = {
-    lualine_a = { { 'mode', separator = { left = '', right = '' } } },
-    lualine_b = { 'fancy_branch', 'fancy_diff',
-        { 'diagnostics', sources = { 'nvim_lsp', 'coc' } } },
+    lualine_a = { { 'mode', separator = { left = '', right = '' }, icon = "" } },
+    lualine_b = { 'fancy_branch', 'fancy_diff', { 'diagnostics', sources = { 'nvim_lsp', 'coc' } } },
     lualine_c = { 'filename' },
     lualine_x = { 'fancy_filetype' },
     lualine_y = { 'fancy_progress' },
@@ -48,7 +55,7 @@ lvim.builtin.lualine.sections           = {
 }
 ---------------------------------
 
------------- TELESCOPE SETUP ------------
+------------ telescope setup ------------
 lvim.builtin.telescope                  = {
     active = true,
     defaults = {
@@ -146,44 +153,6 @@ dap.configurations.cpp = {
             -- Then, return it
             return "${fileDirname}/bin/" .. fileName
             -- end
-        end,
-        cwd = "${workspaceFolder}",
-        stopOnEntry = false,
-        runInTerminal = true,
-        console = "integratedTerminal",
-    },
-}
-dap.configurations.cpp = {
-    {
-        name = "C++ Debug And Run",
-        type = "codelldb",
-        request = "launch",
-        program = function()
-            local cwd = vim.fn.getcwd()
-
-            local function file_exists(path)
-                local f = io.open(path, "r")
-                if f then f:close() end
-                return f ~= nil
-            end
-
-            if file_exists(cwd .. "/CMakeLists.txt") then
-                -- Use cmake-tools to build the project
-                require("cmake-tools").build({})
-
-                -- Assuming the executable is in the build directory, adjust as needed
-                local build_dir = vim.fn.getcwd() .. "/build"
-                local executable_name = vim.fn.input("Enter the name of the executable: ")
-                return build_dir .. "/" .. executable_name
-            else
-                -- Handle as a regular C++ project
-                local fileName = vim.fn.expand("%:t:r")
-                os.execute("mkdir -p " .. "bin")
-                local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
-                    fileName
-                vim.cmd(cmd)
-                return "${fileDirname}/bin/" .. fileName
-            end
         end,
         cwd = "${workspaceFolder}",
         stopOnEntry = false,
@@ -304,6 +273,44 @@ require("cmake-tools").setup {
         executor = { enabled = true },
         spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }, -- icons used for progress display
         refresh_rate_ms = 100, -- how often to iterate icons
+    },
+}
+dap.configurations.cpp = {
+    {
+        name = "C++ Debug And Run",
+        type = "codelldb",
+        request = "launch",
+        program = function()
+            local cwd = vim.fn.getcwd()
+
+            local function file_exists(path)
+                local f = io.open(path, "r")
+                if f then f:close() end
+                return f ~= nil
+            end
+
+            if file_exists(cwd .. "/CMakeLists.txt") then
+                -- Use cmake-tools to build the project
+                require("cmake-tools").build({})
+
+                -- Assuming the executable is in the build directory, adjust as needed
+                local build_dir = vim.fn.getcwd() .. "/build"
+                local executable_name = vim.fn.input("Enter the name of the executable: ")
+                return build_dir .. "/" .. executable_name
+            else
+                -- Handle as a regular C++ project
+                local fileName = vim.fn.expand("%:t:r")
+                os.execute("mkdir -p " .. "bin")
+                local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
+                    fileName
+                vim.cmd(cmd)
+                return "${fileDirname}/bin/" .. fileName
+            end
+        end,
+        cwd = "${workspaceFolder}",
+        stopOnEntry = false,
+        runInTerminal = true,
+        console = "integratedTerminal",
     },
 }
 
@@ -694,3 +701,49 @@ lvim.builtin.cmp.mapping = cmp.mapping.preset.insert({
     end, { 'i', 's', }
     ),
 })
+
+lvim.builtin.lualine.options.theme = function()
+    -- local luacolors = {
+    --     darkgray = "#3c3836", -- Gruvbox dark gray
+    --     gray = "#928374",     -- Gruvbox gray
+    --     innerbg = nil,        -- Transparent
+    --     outerbg = nil,        -- Transparent
+    --     normal = "#fabd2f",   -- Gruvbox yellow (for normal mode)
+    --     insert = "#b8bb26",   -- Gruvbox green (for insert mode)
+    --     visual = "#fe8019",   -- Gruvbox orange (for visual mode)
+    --     replace = "#fb4934",  -- Gruvbox red (for replace mode)
+    --     command = "#83a598",  -- Gruvbox aqua (for command mode)
+    -- }
+    return {
+        inactive = {
+            a = { fg = colors.gray, bg = colors.outerbg, gui = "bold" },
+            b = { fg = colors.gray, bg = colors.outerbg },
+            c = { fg = colors.gray, bg = colors.innerbg },
+        },
+        visual = {
+            a = { fg = colors.darkgray, bg = colors.visual, gui = "bold" },
+            b = { fg = colors.gray, bg = colors.outerbg },
+            c = { fg = colors.gray, bg = colors.innerbg },
+        },
+        replace = {
+            a = { fg = colors.darkgray, bg = colors.replace, gui = "bold" },
+            b = { fg = colors.gray, bg = colors.outerbg },
+            c = { fg = colors.gray, bg = colors.innerbg },
+        },
+        normal = {
+            a = { fg = colors.darkgray, bg = colors.normal, gui = "bold" },
+            b = { fg = colors.gray, bg = colors.outerbg },
+            c = { fg = colors.gray, bg = colors.innerbg },
+        },
+        insert = {
+            a = { fg = colors.darkgray, bg = colors.insert, gui = "bold" },
+            b = { fg = colors.gray, bg = colors.outerbg },
+            c = { fg = colors.gray, bg = colors.innerbg },
+        },
+        command = {
+            a = { fg = colors.darkgray, bg = colors.command, gui = "bold" },
+            b = { fg = colors.gray, bg = colors.outerbg },
+            c = { fg = colors.gray, bg = colors.innerbg },
+        },
+    }
+end
