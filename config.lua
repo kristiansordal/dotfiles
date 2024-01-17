@@ -1,10 +1,12 @@
-lvim.log.evel               = "warn"
-lvim.format_on_save         = false
+vim.log.evel                = "warn"
+lvim.format_on_save         = true
 lvim.transparent_window     = true
 lvim.lsp.document_highlight = false
 vim.cmd("set bg=dark")
 vim.cmd("set nocursorline")
 vim.opt.shortmess:append "S"
+vim.opt.shortmess:append "W"
+vim.opt.shortmess:append "I"
 
 ---------- KEYBINDS ------------
 lvim.leader                         = "space"
@@ -23,13 +25,19 @@ lvim.keys.normal_mode['<f3>']       = ":lua require'dap'.step_into()<cr>"
 lvim.keys.normal_mode['<f4>']       = ":lua require'dap'.toggle_breakpoint()<cr>"
 ---------------------------------
 ---
+lvim.builtin.which_key.mappings.w   = nil
 local wk                            = require("which-key")
 wk.register({
     d = {
         f = { "<cmd>CMakeDebug<CR>", "Debug CMake Project" },
+        F = { "<cmd>CMakeRun<CR>", "Run CMake Project" },
         v = { "<cmd>CMakeBuild<CR>", "Build CMake Project" },
-        z = { "<cmd>CMakeSelectCwd<CR>", "Select CMake Work Directory" }
-    }
+        V = { "<cmd>CMakeClean<CR>", "Clean CMake Project" },
+        z = { "<cmd>CMakeSelectCwd<CR>", "Select CMake Work Directory" },
+        x = { "<cmd>CMakeGenerate<CR>", "Generate CMake Project" },
+        q = { "<cmd>CMakeSelectLaunchTarget<CR>", "Select CMake Launch Target" }
+    },
+    w = { "<cmd>silent write<CR>", "Save" }
 }, { prefix = "<leader>" })
 
 ------------ lunarvim ------------
@@ -46,10 +54,28 @@ lvim.builtin.lualine.options            = {
     always_divide_middle = false,
 }
 lvim.builtin.lualine.sections           = {
-    lualine_a = { { 'mode', separator = { left = '', right = '' }, icon = "" } },
+    --
+    lualine_a = { { 'mode', separator = { left = '', right = '' }, icon = "" } },
     lualine_b = { 'fancy_branch', 'fancy_diff', { 'diagnostics', sources = { 'nvim_lsp', 'coc' } } },
-    lualine_c = { 'filename' },
-    lualine_x = { 'fancy_filetype' },
+    lualine_c = { 'filename', 'fancy_macro' },
+    lualine_x = {
+        {
+            require("noice").api.status.message.get,
+            cond = require("noice").api.status.message.has,
+        },
+        {
+            require("noice").api.status.command.get,
+            cond = require("noice").api.status.command.has,
+        },
+        {
+            require("noice").api.status.mode.get,
+            cond = require("noice").api.status.mode.has,
+        },
+        {
+            require("noice").api.status.search.get,
+            cond = require("noice").api.status.search.has,
+        },
+        'fancy_filetype' },
     lualine_y = { 'fancy_progress' },
     lualine_z = { 'fancy_location', 'fancy_searchcount' },
 }
@@ -73,7 +99,83 @@ lvim.builtin.telescope                  = {
     }
 
 }
------------------------------------------
+
+-- -------- NVIM-DAP-UI SETUP --------
+-- require("dapui").setup(
+--     {
+--         controls = {
+--             element = "repl",
+--             enabled = false,
+--             icons = {
+--                 disconnect = "",
+--                 pause = "",
+--                 play = "",
+--                 run_last = "",
+--                 step_back = "",
+--                 step_into = "",
+--                 step_out = "",
+--                 step_over = "",
+--                 terminate = ""
+--             }
+--         },
+--         element_mappings = {},
+--         expand_lines = true,
+--         floating = {
+--             border = "single",
+--             mappings = {
+--                 close = { "q", "<Esc>" }
+--             }
+--         },
+--         force_buffers = true,
+--         icons = {
+--             collapsed = "",
+--             current_frame = "",
+--             expanded = ""
+--         },
+--         layouts = { {
+--             elements = { {
+--                 id = "scopes",
+--                 size = 0.25
+--             }, {
+--                 id = "breakpoints",
+--                 size = 0.25
+--             }, {
+--                 id = "stacks",
+--                 size = 0.25
+--             }, {
+--                 id = "watches",
+--                 size = 0.25
+--             } },
+--             position = "right",
+--             size = 40
+--         }, {
+--             elements = {
+--                 --         {
+--                 --     id = "repl",
+--                 --     size = 0.5
+--                 -- },
+--                 {
+--                     id = "console",
+--                     size = 0.5
+--                 } },
+--             position = "bottom",
+--             size = 10
+--         } },
+--         mappings = {
+--             edit = "e",
+--             expand = { "<CR>", "<2-LeftMouse>" },
+--             open = "o",
+--             remove = "d",
+--             -- repl = "r",
+--             toggle = "t"
+--         },
+--         render = {
+--             indent = 1,
+--             max_value_lines = 100
+--         }
+--     }
+
+-- )
 
 ------------ LSP SETUP ------------
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "omnisharp", "csharp_ls" })
@@ -482,11 +584,22 @@ lvim.plugins = {
             -- or leave it empty to use the default settings
             -- refer to the configuration section below
         }
-    }, {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
-},
+    },
+    { 'MunifTanjim/nui.nvim' },
+    {
+        "folke/noice.nvim",
+        dependencies = {
+            -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+            "MunifTanjim/nui.nvim",
+            "rcarriga/nvim-notify"
+        }
+
+    },
+    {
+        "zbirenbaum/copilot.lua",
+        cmd = "Copilot",
+        event = "InsertEnter",
+    },
     {
         "zbirenbaum/copilot-cmp",
         after = { "copilot.lua" },
@@ -497,6 +610,170 @@ lvim.plugins = {
     { 'folke/tokyonight.nvim' },
     { 'Civitasv/cmake-tools.nvim' }
 }
+
+---------- NOTIFY -------------
+require("notify").setup({
+    background_colour = "#000000",
+})
+
+require("telescope").load_extension("noice")
+---------- NOICE --------------
+
+require("noice").setup({
+    cmdline = {
+        view = "cmdline_popup", -- view for rendering the cmdline. Change to `cmdline` to get a classic cmdline at the bottom
+        format = {
+            cmdline = { pattern = "^:", icon = "|>", lang = "", title = "" },
+        }
+    },
+    views = {
+        cmdline_popup = {
+            position = {
+                row = 5,
+                col = "50%",
+            },
+            size = {
+                width = 40,
+                height = "auto",
+            },
+        },
+        popupmenu = {
+            relative = "editor",
+            position = {
+                row = 8,
+                col = "50%",
+            },
+            size = {
+                width = 40,
+                height = 10,
+            },
+            border = {
+                style = "rounded",
+                padding = { 0, 1 },
+            },
+            win_options = {
+                winhighlight = { Normal = "Normal", FloatBorder = "DiagnosticInfo" },
+            },
+        },
+    },
+    presets = {
+        bottom_search = true,         -- use a classic bottom cmdline for search
+        long_message_to_split = true, -- long messages will be sent to a split
+        inc_rename = false,           -- enables an input dialog for inc-rename.nvim
+        lsp_doc_border = false,       -- add a border to hover docs and signature help
+    },
+    lsp = { progress = { enabled = false } },
+    notify = { enabled = false },
+    errors = { enabled = false },
+    routes = {
+        {
+            filter = {
+                event = "msg_show",
+                find = "Code actions",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Exited with code 0",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Configuration",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Select launch target",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Select test to run",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Select build type",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Select build target",
+            },
+            view = "mini",
+        },
+        {
+            filter = { event = "msg_show", kind = "confirm_sub" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "confirm" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "info" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "emsg" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "echo" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "echomsg" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "echoerr" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "lua_error" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "rpc_error" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "return_prompt" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "quickfix" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "search_count" },
+            opts = { skip = true },
+        },
+        {
+            filter = { event = "msg_show", kind = "wmsg" },
+            opts = { skip = true },
+        },
+        {
+            -- view = "cmdline_popup",
+            filter = { event = "msg_show", kind = "" },
+            opts = { skip = true },
+        },
+    }
+})
 
 
 -- GRUVBOX COLOR SCHEME SETUP
