@@ -4,10 +4,11 @@ lvim.transparent_window     = true
 lvim.lsp.document_highlight = false
 vim.cmd("set bg=dark")
 vim.cmd("set nocursorline")
+vim.cmd("set rnu")
 vim.opt.shortmess:append "S"
 vim.opt.shortmess:append "W"
 vim.opt.shortmess:append "I"
-
+-- vim.cmd("PyrightSetPythonPath /opt/homebrew/bin/python3.11")
 ---------- KEYBINDS ------------
 lvim.leader                         = "space"
 lvim.keys.normal_mode["<leader>gt"] = ":zenmode<cr>"
@@ -28,16 +29,21 @@ lvim.keys.normal_mode['<f4>']       = ":lua require'dap'.toggle_breakpoint()<cr>
 lvim.builtin.which_key.mappings.w   = nil
 local wk                            = require("which-key")
 wk.register({
-    d = {
-        f = { "<cmd>CMakeDebug<CR>", "Debug CMake Project" },
-        F = { "<cmd>CMakeRun<CR>", "Run CMake Project" },
-        v = { "<cmd>CMakeBuild<CR>", "Build CMake Project" },
-        V = { "<cmd>CMakeClean<CR>", "Clean CMake Project" },
-        z = { "<cmd>CMakeSelectCwd<CR>", "Select CMake Work Directory" },
-        x = { "<cmd>CMakeGenerate<CR>", "Generate CMake Project" },
-        q = { "<cmd>CMakeSelectLaunchTarget<CR>", "Select CMake Launch Target" }
+    r = {
+        d = { "<cmd>CMakeDebug<CR>", "Debug CMake Project" },
+        r = { "<cmd>CMakeRun<CR>", "Run CMake Project" },
+        b = { "<cmd>CMakeBuild<CR>", "Build CMake Project" },
+        c = { "<cmd>CMakeClean<CR>", "Clean CMake Project" },
+        w = { "<cmd>CMakeSelectCwd<CR>", "Select CMake Work Directory" },
+        p = { "<cmd>CMakeGenerate<CR>", "Generate CMake Project" },
+        l = { "<cmd>CMakeSelectLaunchTarget<CR>", "Select CMake Launch Target" },
+        a = { "<cmd>CMakeSelectBuildTarget<CR>", "Select CMake Build Target" },
+        t = { "<cmd>CMakeSelectBuildType<CR>", "Select CMake Build Type" }
     },
-    w = { "<cmd>silent write<CR>", "Save" }
+    w = { "<cmd>silent write<CR>", "Save" },
+    l = {
+        h = { "<cmd>lua vim.lsp.buf.hover()<cr>", "See Definition" }
+    }
 }, { prefix = "<leader>" })
 
 ------------ lunarvim ------------
@@ -100,83 +106,6 @@ lvim.builtin.telescope                  = {
 
 }
 
--- -------- NVIM-DAP-UI SETUP --------
--- require("dapui").setup(
---     {
---         controls = {
---             element = "repl",
---             enabled = false,
---             icons = {
---                 disconnect = "",
---                 pause = "",
---                 play = "",
---                 run_last = "",
---                 step_back = "",
---                 step_into = "",
---                 step_out = "",
---                 step_over = "",
---                 terminate = ""
---             }
---         },
---         element_mappings = {},
---         expand_lines = true,
---         floating = {
---             border = "single",
---             mappings = {
---                 close = { "q", "<Esc>" }
---             }
---         },
---         force_buffers = true,
---         icons = {
---             collapsed = "",
---             current_frame = "",
---             expanded = ""
---         },
---         layouts = { {
---             elements = { {
---                 id = "scopes",
---                 size = 0.25
---             }, {
---                 id = "breakpoints",
---                 size = 0.25
---             }, {
---                 id = "stacks",
---                 size = 0.25
---             }, {
---                 id = "watches",
---                 size = 0.25
---             } },
---             position = "right",
---             size = 40
---         }, {
---             elements = {
---                 --         {
---                 --     id = "repl",
---                 --     size = 0.5
---                 -- },
---                 {
---                     id = "console",
---                     size = 0.5
---                 } },
---             position = "bottom",
---             size = 10
---         } },
---         mappings = {
---             edit = "e",
---             expand = { "<CR>", "<2-LeftMouse>" },
---             open = "o",
---             remove = "d",
---             -- repl = "r",
---             toggle = "t"
---         },
---         render = {
---             indent = 1,
---             max_value_lines = 100
---         }
---     }
-
--- )
-
 ------------ LSP SETUP ------------
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "omnisharp", "csharp_ls" })
 lvim.builtin.treesitter.ensure_installed = {
@@ -236,25 +165,31 @@ dap.configurations.cpp = {
         type = "codelldb",
         request = "launch",
         program = function()
-            -- First, check if exists CMakeLists.txt
             local cwd = vim.fn.getcwd()
-            -- if file.exists(cwd, "CMakeLists.txt") then
-            -- Then invoke cmake commands
-            -- Then ask user to provide execute file
-            -- return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
-            -- else
-            local fileName = vim.fn.expand("%:t:r")
-            -- create this directory
-            os.execute("mkdir -p " .. "bin")
-            -- local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -ld_classic -g % -o bin/" .. fileName
-            local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
-                fileName
 
-            -- First, compile it
-            vim.cmd(cmd)
-            -- Then, return it
-            return "${fileDirname}/bin/" .. fileName
-            -- end
+            local function file_exists(path)
+                local f = io.open(path, "r")
+                if f then f:close() end
+                return f ~= nil
+            end
+
+            if file_exists(cwd .. "/CMakeLists.txt") then
+                -- Use cmake-tools to build the project
+                require("cmake-tools").build({})
+
+                -- Assuming the executable is in the build directory, adjust as needed
+                local build_dir = vim.fn.getcwd() .. "/build"
+                local executable_name = vim.fn.input("Enter the name of the executable: ")
+                return build_dir .. "/" .. executable_name
+            else
+                -- Handle as a regular C++ project
+                local fileName = vim.fn.expand("%:t:r")
+                os.execute("mkdir -p " .. "bin")
+                local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
+                    fileName
+                vim.cmd(cmd)
+                return "${fileDirname}/bin/" .. fileName
+            end
         end,
         cwd = "${workspaceFolder}",
         stopOnEntry = false,
@@ -375,44 +310,6 @@ require("cmake-tools").setup {
         executor = { enabled = true },
         spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }, -- icons used for progress display
         refresh_rate_ms = 100, -- how often to iterate icons
-    },
-}
-dap.configurations.cpp = {
-    {
-        name = "C++ Debug And Run",
-        type = "codelldb",
-        request = "launch",
-        program = function()
-            local cwd = vim.fn.getcwd()
-
-            local function file_exists(path)
-                local f = io.open(path, "r")
-                if f then f:close() end
-                return f ~= nil
-            end
-
-            if file_exists(cwd .. "/CMakeLists.txt") then
-                -- Use cmake-tools to build the project
-                require("cmake-tools").build({})
-
-                -- Assuming the executable is in the build directory, adjust as needed
-                local build_dir = vim.fn.getcwd() .. "/build"
-                local executable_name = vim.fn.input("Enter the name of the executable: ")
-                return build_dir .. "/" .. executable_name
-            else
-                -- Handle as a regular C++ project
-                local fileName = vim.fn.expand("%:t:r")
-                os.execute("mkdir -p " .. "bin")
-                local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
-                    fileName
-                vim.cmd(cmd)
-                return "${fileDirname}/bin/" .. fileName
-            end
-        end,
-        cwd = "${workspaceFolder}",
-        stopOnEntry = false,
-        runInTerminal = true,
-        console = "integratedTerminal",
     },
 }
 
@@ -608,8 +505,9 @@ lvim.plugins = {
         end,
     },
     { 'folke/tokyonight.nvim' },
-    { 'Civitasv/cmake-tools.nvim' }
+    { 'Civitasv/cmake-tools.nvim' },
 }
+
 
 ---------- NOTIFY -------------
 require("notify").setup({
@@ -660,9 +558,9 @@ require("noice").setup({
         bottom_search = true,         -- use a classic bottom cmdline for search
         long_message_to_split = true, -- long messages will be sent to a split
         inc_rename = false,           -- enables an input dialog for inc-rename.nvim
-        lsp_doc_border = false,       -- add a border to hover docs and signature help
+        lsp_doc_border = true,        -- add a border to hover docs and signature help
     },
-    lsp = { progress = { enabled = false } },
+    lsp = { progress = { enabled = false }, hover = { enabled = false }, signature = { enabled = false } },
     notify = { enabled = false },
     errors = { enabled = false },
     routes = {
@@ -684,6 +582,13 @@ require("noice").setup({
             filter = {
                 event = "msg_show",
                 find = "Configuration",
+            },
+            view = "mini",
+        },
+        {
+            filter = {
+                event = "msg_show",
+                find = "Please select",
             },
             view = "mini",
         },
@@ -839,9 +744,9 @@ require('gruvbox').setup {
         Delimiter = { bg = "", fg = "#bdae93" },
 
         -- Change the way hovered variables are highlighted
-        IlluminatedWordText = { undercurl = true, bold = true },
-        IlluminatedWordRead = { undercurl = true, bold = true },
-        IlluminatedWordWrite = { undercurl = true, bold = true },
+        IlluminatedWordText = { underline = true, bold = true },
+        IlluminatedWordRead = { underline = true, bold = true },
+        IlluminatedWordWrite = { underline = true, bold = true },
 
         -- Change color of operators
         Operator = { bg = "", fg = "#83a598", bold = false, italic = false },
@@ -855,7 +760,7 @@ require('gruvbox').setup {
         GruvboxPurpleUnderline = { bold = true, undercurl = false, sp = colors.purple },
         GruvboxAquaUnderline = { bold = true, undercurl = false, sp = colors.aqua },
         GruvboxOrangeUnderline = { bold = true, undercurl = false, sp = colors.orange },
-        markdownBold = { bold = true, bg = "", fg = colors.aqua },
+        markdownBold = { bold = true, fg = colors.aqua },
         luaTable = { bg = "", fg = "#bdae93" }
     },
     invert_selection = false,

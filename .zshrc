@@ -1,5 +1,5 @@
-alias neofetch='neofetch --source ~/.config/neofetch/asciiart/macintosh.txt'
-neofetch
+# alias neofetch='neofetch --source ~/.config/neofetch/asciiart/macintosh.txt'
+# neofetch
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -7,19 +7,20 @@ fi
 
 # export DBUS_SESSION_BUS_ADDRESS="unix:path=$DBUS_LAUNCHD_SESSION_BUS_SOCKET"
 
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 export AOC_SESSION="53616c7465645f5ff24cc4c3ad8ebf13d5d53654e9796a46151f8cb026018769a93b279241ac07277389c6b8ee78cdd789c30a6aa5f8e36dc1fd1b2b91e1a819"
 export PATH="usr/bin/clang:$PATH"
 export PATH="/usr/bin/gcc:$PATH"
-export PATH="/opt/homebrew/bin/g++-12:$PATH" # export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
-# export PATH="/opt/homebrew/Cellar/openjdk@11/bin/java:$PATH"
+export PATH="/Users/kristiansordal/.cargo/bin:$PATH"     
+export PATH="/opt/homebrew/bin/g++-12:$PATH" 
 export PATH="/opt/homebrew/Cellar/openjdk@17/17.0.6/bin:$PATH"
 export PATH="~/.local/bin/lvim:$PATH"
-# export PATH="~/kattis-cli:$PATH"
-# export PATH="/usr/bin/java:$PATH"
+# export CXX="/opt/homebrew/Cellar/llvm/18.1.4/bin/clang"
+export CXX="/opt/homebrew/Cellar/llvm@16/16.0.6_1/bin/clang++"
+# export CXX="/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13"
 export JAVA_HOME="/opt/homebrew/Cellar/openjdk@17/17.0.7/"
-# export JAVA_HOME="/opt/homebrew/opt/openjdk@17/bin/java"
-# export JAVA_HOME="/opt/homebrew/bin/gradle"
-# export JAVA_HOME="usr/bin/"
+
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -121,3 +122,13 @@ export PATH=$PATH:/Users/kristiansordal/.spicetify
 #[ -f "/Users/kristiansordal/.ghcup/env" ] && source "/Users/kristiansordal/.ghcup/env" # ghcup-env
 
 [ -f "/Users/kristiansordal/.ghcup/env" ] && source "/Users/kristiansordal/.ghcup/env" # ghcup-env
+eval "$(zoxide init --cmd cd zsh)"
+function ya() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXX")"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+

@@ -15,6 +15,23 @@ ls.add_snippets("cpp", {
         t({ " << endl;" })
 
     }),
+    s({ trig = "sout", wordTrig = false }, {
+        t({ "cout << " }),
+        i(1),
+        t({ "<< \" \";" })
+
+    }),
+    s({ trig = "fout", wordTrig = false }, {
+        t({ "cout << " }),
+        i(1),
+        t({ ";" })
+    }),
+    s({ trig = "flush", wordTrig = false }, {
+        t({ "cout << endl;" }),
+    }),
+    s({ trig = "sflush", wordTrig = false }, {
+        t({ "std::cout << std::endl;" }),
+    }),
     s({ trig = "usingnam", wordTrig = false }, {
         t({ "using namespace std;" }),
 
