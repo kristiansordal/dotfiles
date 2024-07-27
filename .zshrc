@@ -5,20 +5,22 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# export DBUS_SESSION_BUS_ADDRESS="unix:path=$DBUS_LAUNCHD_SESSION_BUS_SOCKET"
+# # export DBUS_SESSION_BUS_ADDRESS="unix:path=$DBUS_LAUNCHD_SESSION_BUS_SOCKET"
 
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export AOC_SESSION="53616c7465645f5ff24cc4c3ad8ebf13d5d53654e9796a46151f8cb026018769a93b279241ac07277389c6b8ee78cdd789c30a6aa5f8e36dc1fd1b2b91e1a819"
-export PATH="usr/bin/clang:$PATH"
-export PATH="/usr/bin/gcc:$PATH"
+# export PATH="usr/bin/clang:$PATH"
+# export PATH="/usr/bin/gcc:$PATH"
+export PATH="/opt/homebrew/bin/cmake:$PATH"
 export PATH="/Users/kristiansordal/.cargo/bin:$PATH"     
 export PATH="/opt/homebrew/bin/g++-12:$PATH" 
 export PATH="/opt/homebrew/Cellar/openjdk@17/17.0.6/bin:$PATH"
 export PATH="~/.local/bin/lvim:$PATH"
 # export CXX="/opt/homebrew/Cellar/llvm/18.1.4/bin/clang"
-export CXX="/opt/homebrew/Cellar/llvm@16/16.0.6_1/bin/clang++"
-# export CXX="/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13"
+# export CXX="/opt/homebrew/Cellar/llvm@16/16.0.6_1/bin/clang++"
+export CXX="/opt/homebrew/Cellar/gcc/14.1.0_2/bin/g++-14"
+export CXX="/opt/homebrew/Cellar/llvm@17/17.0.6/bin/clang++"
 export JAVA_HOME="/opt/homebrew/Cellar/openjdk@17/17.0.7/"
 
 # Path to your oh-my-zsh installation.
@@ -64,7 +66,6 @@ alias mat221='cd ~/dev/uib/fall23/mat221'
 alias inf236='cd ~/dev/uib/spring24/inf236'
 alias inf237='cd ~/dev/uib/spring24/inf237'
 alias obs='~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/UiB'
-alias ranger='source ranger'
 alias g++='/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20'
 alias clang='/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20'
 
@@ -131,4 +132,3 @@ function ya() {
 	fi
 	rm -f -- "$tmp"
 }
-

@@ -8,7 +8,68 @@ vim.cmd("set rnu")
 vim.opt.shortmess:append "S"
 vim.opt.shortmess:append "W"
 vim.opt.shortmess:append "I"
--- vim.cmd("PyrightSetPythonPath /opt/homebrew/bin/python3.11")
+
+lvim.plugins = {
+    {
+        "lervag/vimtex",
+        config = function()
+        end,
+    },
+    { 'tpope/vim-surround' },
+    { 'mg979/vim-visual-multi' },
+    { 'honza/vim-snippets' },
+    { 'sainnhe/everforest' },
+    { 'preservim/vim-markdown' },
+    { 'godlygeek/tabular' },
+    { 'sainnhe/gruvbox-material' },
+    { 'mfussenegger/nvim-dap' },
+    { 'mfussenegger/nvim-jdtls' },
+    { 'mrjones2014/nvim-ts-rainbow' },
+    { 'ellisonleao/gruvbox.nvim' },
+    { "mfussenegger/nvim-dap-python" },
+    { 'meuter/lualine-so-fancy.nvim' },
+    {
+        "folke/zen-mode.nvim",
+        opts = {
+            window = { height = 0.9 }
+        }
+    },
+    {
+        "folke/todo-comments.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        opts = {
+            -- your configuration comes here
+            -- or leave it empty to use the default settings
+            -- refer to the configuration section below
+        }
+    },
+    { 'MunifTanjim/nui.nvim' },
+    {
+        "folke/noice.nvim",
+        dependencies = {
+            -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+            "MunifTanjim/nui.nvim",
+            "rcarriga/nvim-notify"
+        }
+
+    },
+    {
+        "zbirenbaum/copilot.lua",
+        cmd = "Copilot",
+        event = "InsertEnter",
+    },
+    {
+        "zbirenbaum/copilot-cmp",
+        after = { "copilot.lua" },
+        config = function()
+            require("copilot_cmp").setup()
+        end,
+    },
+    { 'folke/tokyonight.nvim' },
+    { 'Civitasv/cmake-tools.nvim' },
+}
+
+
 ---------- KEYBINDS ------------
 lvim.leader                         = "space"
 lvim.keys.normal_mode["<leader>gt"] = ":zenmode<cr>"
@@ -146,58 +207,73 @@ lvim.keys.normal_mode["<leader>sg"] = "<cmd>lua require('copilot.suggestion').to
 
 
 ------------ DEBUGGER SETUP ------------
+---
+require("lvim.lsp.manager").setup("pyright", opts)
+require('dap-python').setup('/opt/homebrew/bin/python3.11')
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+    {
+        name = "black",
+        args = { "-l", 100, "--preview" }
+    },
+}
+
 local dap = require('dap')
+
 dap.adapters.codelldb = {
     type = 'server',
+    host = '127.0.0.1',
     port = "${port}",
     executable = {
-        command = '/Users/kristiansordal/nvim-debug/codelldb-aarch64-darwin/extension/adapter/codelldb',
+        command = '/Users/kristiansordal/.local/share/lvim/mason/packages/codelldb/codelldb',
         args = { "--port", "${port}" },
 
     },
-    runInTerminal = true
+    -- runInTerminal = false
 }
 
+-- dap.configurations.cpp = {
+--     {
+--         name = "C++ Debug And Run",
+--         type = "codelldb",
+--         request = "launch",
+--         program = function()
+--             local cwd = vim.fn.getcwd()
 
-dap.configurations.cpp = {
-    {
-        name = "C++ Debug And Run",
-        type = "codelldb",
-        request = "launch",
-        program = function()
-            local cwd = vim.fn.getcwd()
+--             local function file_exists(path)
+--                 local f = io.open(path, "r")
+--                 if f then f:close() end
+--                 return f ~= nil
+--             end
 
-            local function file_exists(path)
-                local f = io.open(path, "r")
-                if f then f:close() end
-                return f ~= nil
-            end
+--             if file_exists(cwd .. "/CMakeLists.txt") then
+--                 -- Use cmake-tools to build the project
+--                 require("cmake-tools").build({})
 
-            if file_exists(cwd .. "/CMakeLists.txt") then
-                -- Use cmake-tools to build the project
-                require("cmake-tools").build({})
-
-                -- Assuming the executable is in the build directory, adjust as needed
-                local build_dir = vim.fn.getcwd() .. "/build"
-                local executable_name = vim.fn.input("Enter the name of the executable: ")
-                return build_dir .. "/" .. executable_name
-            else
-                -- Handle as a regular C++ project
-                local fileName = vim.fn.expand("%:t:r")
-                os.execute("mkdir -p " .. "bin")
-                local cmd = "!/opt/homebrew/Cellar/gcc/13.2.0/bin/g++-13 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
-                    fileName
-                vim.cmd(cmd)
-                return "${fileDirname}/bin/" .. fileName
-            end
-        end,
-        cwd = "${workspaceFolder}",
-        stopOnEntry = false,
-        runInTerminal = true,
-        console = "integratedTerminal",
-    },
-}
+--                 -- Assuming the executable is in the build directory, adjust as needed
+--                 local build_dir = vim.fn.getcwd() .. "/build"
+--                 local executable_name = vim.fn.input("Enter the name of the executable: ")
+--                 return build_dir .. "/" .. executable_name
+--             else
+--                 -- Handle as a regular C++ project
+--                 local fileName = vim.fn.expand("%:t:r")
+--                 os.execute("mkdir -p " .. "bin")
+--                 local cmd =
+--                     "!/opt/homebrew/Cellar/gcc/14.1.0_2/bin/g++-14 -std=c++20 -Wno-psabi -ld_classic -g % -o bin/" ..
+--                     fileNameO
+--                 vim.cmd(cmd)
+--                 return vim.fn.getcwd() .. "/bin/" .. fileName
+--             end
+--         end,
+--         cwd = "${workspaceFolder}",
+--         stopOnEntry = false,
+--         runInTerminal = false,
+--         console = "integratedTerminal",
+--     },
+-- }
 -- setup for cmake tools, apart of cpp debugging
+local osys = require("cmake-tools.osys")
+
 require("cmake-tools").setup {
     cmake_command = "cmake",                                          -- this is used to specify cmake command path
     ctest_command = "ctest",                                          -- this is used to specify ctest command path
@@ -213,13 +289,14 @@ require("cmake-tools").setup {
         long = { show = true, max_length = 40 },                      -- whether to show long message
     },
     cmake_dap_configuration = {                                       -- debug settings for cmake
-        name = "cpp",
+        name = "Launch File",
         type = "codelldb",
         request = "launch",
         stopOnEntry = false,
-        runInTerminal = true,
+        runInTerminal = false,
         console = "integratedTerminal",
     },
+
     cmake_executor = {                          -- executor to use
         name = "quickfix",                      -- name of the executor
         opts = {},                              -- the options the executor will get, possible values depend on the executor type. See `default_opts` for possible values.
@@ -312,6 +389,7 @@ require("cmake-tools").setup {
         refresh_rate_ms = 100, -- how often to iterate icons
     },
 }
+
 
 dap.configurations.java = {
     {
@@ -448,66 +526,6 @@ require("lvim.lsp.manager").setup("omnisharp", csopts)
 
 
 -- PLUGINS
-lvim.plugins = {
-    {
-        "lervag/vimtex",
-        config = function()
-        end,
-    },
-    { 'tpope/vim-surround' },
-    { 'mg979/vim-visual-multi' },
-    { 'honza/vim-snippets' },
-    { 'sainnhe/everforest' },
-    { 'preservim/vim-markdown' },
-    { 'godlygeek/tabular' },
-    { 'sainnhe/gruvbox-material' },
-    { 'mfussenegger/nvim-dap' },
-    { 'mfussenegger/nvim-jdtls' },
-    { 'mrjones2014/nvim-ts-rainbow' },
-    { 'ellisonleao/gruvbox.nvim' },
-    { "mfussenegger/nvim-dap-python" },
-    { 'meuter/lualine-so-fancy.nvim' },
-    {
-        "folke/zen-mode.nvim",
-        opts = {
-            window = { height = 0.9 }
-        }
-    },
-    {
-        "folke/todo-comments.nvim",
-        dependencies = { "nvim-lua/plenary.nvim" },
-        opts = {
-            -- your configuration comes here
-            -- or leave it empty to use the default settings
-            -- refer to the configuration section below
-        }
-    },
-    { 'MunifTanjim/nui.nvim' },
-    {
-        "folke/noice.nvim",
-        dependencies = {
-            -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-            "MunifTanjim/nui.nvim",
-            "rcarriga/nvim-notify"
-        }
-
-    },
-    {
-        "zbirenbaum/copilot.lua",
-        cmd = "Copilot",
-        event = "InsertEnter",
-    },
-    {
-        "zbirenbaum/copilot-cmp",
-        after = { "copilot.lua" },
-        config = function()
-            require("copilot_cmp").setup()
-        end,
-    },
-    { 'folke/tokyonight.nvim' },
-    { 'Civitasv/cmake-tools.nvim' },
-}
-
 
 ---------- NOTIFY -------------
 require("notify").setup({

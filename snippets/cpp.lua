@@ -5,14 +5,16 @@ local i = ls.insert_node
 ls.add_snippets("cpp", {
     s({ trig = "scout", wordTrig = false }, {
         t({ "std::cout << " }),
-        i(1),
-        t({ " << std::endl;" })
+        -- i(1),
+        -- t({ " << std::endl;" })
 
     }),
     s({ trig = "cout", wordTrig = false }, {
         t({ "cout << " }),
-        i(1),
-        t({ " << endl;" })
+
+    }),
+    s({ trig = "endl", wordTrig = false }, {
+        t({ "<< endl " }),
 
     }),
     s({ trig = "sout", wordTrig = false }, {
