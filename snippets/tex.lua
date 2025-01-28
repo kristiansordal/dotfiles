@@ -542,12 +542,12 @@ ls.add_snippets("tex", {
 
     -- Display math
     s("dm", {
-        t({ "\\[ " }),
+        t({ "\\[" }),
         f(function(_, snip)
             return snip.env.TM_SELECTED_TEXT[1] or {}
         end, {}),
         i(1),
-        t({ " \\]" }),
+        t({ "\\]" }),
     }, { condition = tex.in_text }),
 
     -- s("im", {
@@ -561,12 +561,12 @@ ls.add_snippets("tex", {
 
     -- Inline math
     s("mk", {
-        t({ "\\( " }),
+        t({ "\\(" }),
         f(function(_, snip)
             return snip.env.TM_SELECTED_TEXT[1] or {}
         end, {}),
         i(1),
-        t({ " \\)" }),
+        t({ "\\)" }),
     }, { condition = tex.in_text }),
 
     -- Multiply
@@ -751,7 +751,7 @@ ls.add_snippets("tex", {
 
     -- Sum
     s("sum",
-        fmt("\\sum_{{n={1}}}^{{{2}}} {3}",
+        fmt("\\sum_{{{1}}}^{{{2}}} {3}",
             {
                 i(1),
                 i(2),
@@ -1006,6 +1006,16 @@ ls.add_snippets("tex", {
         t({ " \\right|" }),
     }, { condition = tex.in_mathzone }),
 
+    -- Absolute value
+    s({ trig = "cal", wordTrig = false }, {
+        t({ "\\mathcal{" }),
+        f(function(_, snip)
+            return snip.env.TM_SELECTED_TEXT[1] or {}
+        end, {}),
+        i(1),
+        t({ "}" }),
+    }, { condition = tex.in_mathzone }),
+
     s("qu", {
         t({ "\\quad" }),
     }, { condition = tex.in_mathzone }),
@@ -1039,7 +1049,7 @@ ls.add_snippets("tex", {
 
     -- Cdots
     s("...", {
-        t({ "\\cdots " })
+        t({ "\\dots " })
     }, { condition = tex.in_mathzone }),
 
     s("l...", {
@@ -1058,16 +1068,16 @@ ls.add_snippets("tex", {
     }, { condition = tex.in_mathzone }),
 
     -- Matrix
-    s("mat",
-        fmt(
-            [[
-            \begin{{matrix}}
-                {1} & {2} \\
-                {3} & {4}
-            \end{{matrix}}
-            ]],
-            { i(1), i(2), i(3), i(4) }),
-        { condition = tex.in_mathzone }),
+    -- s("mat",
+    --     fmt(
+    --         [[
+    --         \begin{{matrix}}
+    --             {1} & {2} \\
+    --             {3} & {4}
+    --         \end{{matrix}}
+    --         ]],
+    --         { i(1), i(2), i(3), i(4) }),
+    --     { condition = tex.in_mathzone }),
 
     s("3bmat",
         fmt(

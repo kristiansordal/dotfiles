@@ -1,4 +1,5 @@
-vim.log.evel                = "warn"
+vim.opt.shortmess:append "W"
+vim.opt.shortmess:append "I"
 lvim.format_on_save         = true
 lvim.transparent_window     = true
 lvim.lsp.document_highlight = false
@@ -8,6 +9,9 @@ vim.cmd("set rnu")
 vim.opt.shortmess:append "S"
 vim.opt.shortmess:append "W"
 vim.opt.shortmess:append "I"
+vim.g.python3_host_prog = vim.fn.exepath 'python3'
+vim.g.loaded_python3_provider = nil
+vim.cmd('runtime! plugin/rplugin.vim')
 
 lvim.plugins = {
     {
@@ -67,6 +71,23 @@ lvim.plugins = {
     },
     { 'folke/tokyonight.nvim' },
     { 'Civitasv/cmake-tools.nvim' },
+    { 'untitled-ai/jupyter_ascending.vim' },
+    {
+        'alexghergh/nvim-tmux-navigation',
+        config = function()
+            require 'nvim-tmux-navigation'.setup {
+                disable_when_zoomed = true, -- defaults to false
+                keybindings = {
+                    left = "<C-h>",
+                    down = "<C-j>",
+                    up = "<C-k>",
+                    right = "<C-l>",
+                    last_active = "<C-\\>",
+                    next = "<C-Space>",
+                }
+            }
+        end
+    }
 }
 
 
@@ -85,10 +106,31 @@ lvim.keys.normal_mode['<f1>']       = ":lua require'dap'.continue()<cr>"
 lvim.keys.normal_mode['<f2>']       = ":lua require'dap'.step_over()<cr>"
 lvim.keys.normal_mode['<f3>']       = ":lua require'dap'.step_into()<cr>"
 lvim.keys.normal_mode['<f4>']       = ":lua require'dap'.toggle_breakpoint()<cr>"
+lvim.keys.normal_mode['<c-h>']      = { "<cmd>NvimTmuxNavigateLeft<cr>", silent = true }
+lvim.keys.normal_mode['<c-j>']      = { "<cmd>NvimTmuxNavigateDown<cr>", silent = true }
+lvim.keys.normal_mode['<c-k>']      = { "<cmd>NvimTmuxNavigateUp<cr>", silent = true }
+lvim.keys.normal_mode['<c-l>']      = { "<cmd>NvimTmuxNavigateRight<cr>", silent = true }
 ---------------------------------
 ---
-lvim.builtin.which_key.mappings.w   = nil
-local wk                            = require("which-key")
+---
+-- Function to launch Jupyter Notebook for the current file in a new iTerm window
+local function launch_jupyter_notebook()
+    local current_file = vim.fn.expand("%:r") .. ".ipynb"
+    local command = "source ~/.virtualenvs/machinelearning/bin/activate && python3 -m jupyter notebook " .. current_file
+    local script = [[
+  tell application "iTerm 2"
+      create window with default profile
+      tell current session of current window
+          write text "]] .. command .. [[" & return
+      end tell
+  end tell
+  ]]
+
+    -- Execute the AppleScript command to open a new iTerm window and run the command
+    os.execute('osascript -e \'' .. script .. '\'')
+end
+lvim.builtin.which_key.mappings.w = nil
+local wk                          = require("which-key")
 wk.register({
     r = {
         d = { "<cmd>CMakeDebug<CR>", "Debug CMake Project" },
@@ -104,6 +146,12 @@ wk.register({
     w = { "<cmd>silent write<CR>", "Save" },
     l = {
         h = { "<cmd>lua vim.lsp.buf.hover()<cr>", "See Definition" }
+    },
+    t = {
+        e = { "<Plug>JupyterExecute<CR>", "Execute cell" },
+        a = { "<Plug>JupyterExecuteAll<CR>", "Execute all cells" },
+        r = { "<Plug>JupyterRestart<CR>", "Restart Jupyter" },
+        s = { launch_jupyter_notebook, "Launch Jupyter Notebook in browser" }
     }
 }, { prefix = "<leader>" })
 
@@ -209,7 +257,9 @@ lvim.keys.normal_mode["<leader>sg"] = "<cmd>lua require('copilot.suggestion').to
 ------------ DEBUGGER SETUP ------------
 ---
 require("lvim.lsp.manager").setup("pyright", opts)
-require('dap-python').setup('/opt/homebrew/bin/python3.11')
+-- require('dap-python').setup('/opt/homebrew/bin/python3')
+require('dap-python').setup('~/.local/share/lvim/mason/packages/debugpy/venv/bin/python')
+-- require('dap-python').setup('~/.virtualenvs/debugpy/bin/python')
 local formatters = require "lvim.lsp.null-ls.formatters"
 formatters.setup {
     {
@@ -589,6 +639,14 @@ require("noice").setup({
             },
             view = "mini",
         },
+
+        {
+            filter = {
+                event = "msg_show",
+                find = "Select the kernel to launch:",
+            },
+            view = "mini",
+        },
         {
             filter = {
                 event = "msg_show",
@@ -821,23 +879,37 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 
 
 -- LaTeX Settings
-vim.cmd('set conceallevel=1')
-vim.cmd('map <kj> <Nop>')
-vim.cmd('map <jk> <Nop>')
-vim.cmd('set expandtab')
-vim.cmd('set shiftwidth=4')
-vim.cmd('set tabstop=4')
-vim.cmd("call vimtex#init()")
-vim.cmd("let g:tex_flavour='latex'")
-vim.cmd("let g:vimtex_quickfix_mode=0")
-vim.cmd("let g:tex_conceal='abdmg'")
-vim.cmd("let g:vimtex_view_method='skim'")
-vim.cmd("let g:vimtex_view_general_viewer='skim'")
-vim.cmd("let g:vimtex_view_general_options = '-reuse-instance -forward-serach @tex @line @pdf'")
-vim.cmd("let g:tex_fold_enabled=1")
-vim.cmd("let g:vimtex_compiler_method = 'latexmk'")
-vim.cmd("let g:vimtex_view_general_options = {'options': ['-shell-escape']}")
+-- vim.cmd('set conceallevel=1')
+-- -- vim.cmd('map <kj> <Nop>')
+-- -- vim.cmd('map <jk> <Nop>')
+-- vim.cmd('set expandtab')
+-- vim.cmd('set shiftwidth=4')
+-- vim.cmd('set tabstop=4')
+-- vim.cmd("call vimtex#init()")
+-- vim.cmd("let g:tex_flavour='latex'")
+-- vim.cmd("let g:vimtex_quickfix_mode=0")
+-- vim.cmd("let g:tex_conceal='abdmg'")
+-- vim.cmd("let g:vimtex_view_method='zathura'")
+-- -- vim.cmd("let g:vimtex_view_skim_sync=1")
+-- -- vim.cmd("let g:vimtex_view_general_options = '-reuse-instance -forward-serach @tex @line @pdf'")
+-- vim.cmd("let g:tex_fold_enabled=1")
+-- vim.cmd("let g:vimtex_compiler_method = 'latexmk'")
+-- -- vim.cmd("let g:vimtex_view_general_options = {'options': ['-shell-escape']}")
 
+-- Set conceal level to 1
+vim.opt.conceallevel = 1
+vim.opt.expandtab = true -- Use spaces instead of tabs
+vim.opt.shiftwidth = 4   -- Indentation amount for < and >
+vim.opt.tabstop = 4      -- Number of spaces tabs count for
+vim.cmd("call vimtex#init()")
+vim.g.tex_flavour = 'latex'
+vim.g.tex_conceal = 'abdmg'
+vim.g.vimtex_view_method = 'skim'
+vim.g.vimtex_view_skim_sync = 1
+vim.g.vimtex_view_general_options = '-reuse-instance -forward-search @tex @line @pdf -shell-escape'
+vim.g.vimtex_compiler_method = 'latexmk'
+vim.g.vimtex_quickfix_mode = 0
+vim.g.vimtex_log_verbose = 1
 -- Snippets
 local ls = require("luasnip")
 
@@ -845,7 +917,7 @@ local ls = require("luasnip")
 local types = require("luasnip.util.types")
 
 ls.config.set_config({
-    history = false,
+    history = true,
     enable_autosnippets = true,
     ext_base_prio = 300,
     ext_prio_increase = 1,
