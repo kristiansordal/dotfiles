@@ -19,8 +19,16 @@ export PATH="/opt/homebrew/Cellar/openjdk@17/17.0.6/bin:$PATH"
 export PATH="~/.local/bin/lvim:$PATH"
 export PATH="~/.local/bin/:$PATH"
 export PATH="/opt/homebrew/anaconda3/bin/:$PATH"
-export CXX="/opt/homebrew/Cellar/gcc/14.1.0_2/bin/g++-14"
-export CC="/opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14"
+
+# export CXX="/opt/homebrew/Cellar/gcc/14.2.0_1/bin/g++-14"
+# export CC="/opt/homebrew/Cellar/gcc/14.2.0_1/bin/gcc-14"
+# # export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/"
+
+# export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk"
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+export CC="$(which gcc-14)"
+export CXX="$(which g++-14)"
+# export CMAKE_OSX_SYSROOT=
 # export CXX="/opt/homebrew/Cellar/llvm@17/17.0.6/bin/clang++"
 export JAVA_HOME="/opt/homebrew/Cellar/openjdk@17/17.0.7/"
 export EDITOR="$HOME/.local/bin/lvim"
@@ -67,9 +75,10 @@ alias mat221='cd ~/dev/uib/fall23/mat221'
 alias inf236='cd ~/dev/uib/spring24/inf236'
 alias inf237='cd ~/dev/uib/spring24/inf237'
 alias obs='~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/UiB'
-alias g++='/opt/homebrew/Cellar/gcc/14.1.0_2/bin/g++-14 -std=c++20'
-alias clang='/opt/homebrew/Cellar/gcc/14.1.0_2/bin/g++-14 -std=c++20'
+alias g++='/opt/homebrew/Cellar/gcc/14.2.0_1/bin/g++-14 -std=c++20'
+alias clang='/opt/homebrew/Cellar/gcc/14.2.0_1/bin/g++-14 -std=c++20'
 alias cf='~/go/bin/cf'
+alias ytd='yt-dlp -f bestaudio --extract-audio --audio-format mp3 --audio-quality 320k --cookies-from-browser chrome'
 
 # vim mode
 set -o vi
@@ -134,6 +143,9 @@ function ya() {
 	fi
 	rm -f -- "$tmp"
 }
+
+export GDK_PIXBUF_MODULEDIR=/Applications/Inkscape.app/Contents/Resources/lib/gdk-pixbuf-2.0/2.10.0/loaders
+export GDK_PIXBUF_MODULE_FILE=/Applications/Inkscape.app/Contents/Resources/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!

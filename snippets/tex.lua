@@ -1038,7 +1038,7 @@ ls.add_snippets("tex", {
     -- Sub
     ls.parser.parse_snippet(
         { trig = "_", wordTrig = false },
-        "_{$1}"
+        "\\_"
     ),
 
     s({ trig = "(%a)(%d)%s", regTrig = true }, {
@@ -1464,7 +1464,7 @@ ls.add_snippets("tex", {
         , { condition = tex.in_text }),
 
     s("fref", {
-        t("Figur \\ref{fig:"),
+        t("Figure \\ref{fig:"),
         f(function(_, snip)
             return snip.env.TM_SELECTED_TEXT[1] or {}
         end, {}),

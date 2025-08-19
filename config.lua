@@ -101,6 +101,7 @@ lvim.keys.normal_mode["<leader>k"]  = "<Plug>(VM-Add-Cursor-Up)"
 lvim.keys.normal_mode["<s-l>"]      = ":bn<cr>"
 lvim.keys.normal_mode["<s-h>"]      = ":bp<cr>"
 lvim.keys.normal_mode[";"]          = "$"
+lvim.keys.visual_mode[";"]          = "$"
 lvim.keys.normal_mode['gd']         = ":lua vim.lsp.buf.definition()<cr>"
 lvim.keys.normal_mode['<f1>']       = ":lua require'dap'.continue()<cr>"
 lvim.keys.normal_mode['<f2>']       = ":lua require'dap'.step_over()<cr>"
@@ -152,6 +153,17 @@ wk.register({
         a = { "<Plug>JupyterExecuteAll<CR>", "Execute all cells" },
         r = { "<Plug>JupyterRestart<CR>", "Restart Jupyter" },
         s = { launch_jupyter_notebook, "Launch Jupyter Notebook in browser" }
+    },
+    i = {
+        f = { function()
+            vim.cmd(
+                'silent exec ".!inkscape-figures create \\"" .. getline(".") .. "\\" \\"" .. b:vimtex.root .. "/figures/\\""')
+            vim.cmd('w')
+        end, "Insert Figure" },
+        t = { function()
+            vim.cmd('silent exec "!inkscape-figures edit \\"" .. b:vimtex.root .. "/figures/\\" > /dev/null 2>&1 &"')
+            vim.cmd('redraw!')
+        end, "Edit Figure" }
     }
 }, { prefix = "<leader>" })
 
@@ -901,7 +913,7 @@ vim.opt.conceallevel = 1
 vim.opt.expandtab = true -- Use spaces instead of tabs
 vim.opt.shiftwidth = 4   -- Indentation amount for < and >
 vim.opt.tabstop = 4      -- Number of spaces tabs count for
-vim.cmd("call vimtex#init()")
+-- vim.cmd("call vimtex#init()")
 vim.g.tex_flavour = 'latex'
 vim.g.tex_conceal = 'abdmg'
 vim.g.vimtex_view_method = 'skim'
@@ -910,6 +922,14 @@ vim.g.vimtex_view_general_options = '-reuse-instance -forward-search @tex @line 
 vim.g.vimtex_compiler_method = 'latexmk'
 vim.g.vimtex_quickfix_mode = 0
 vim.g.vimtex_log_verbose = 1
+
+-- vim.cmd [[
+--   augroup VimTeX
+--     autocmd!
+--     autocmd BufReadPre,BufNewFile /Users/kristiansordal/dev/uib/master/thesis/*.tex
+--           \ let b:vimtex_main = '/Users/kristiansordal/dev/uib/master/thesis/main.tex'
+--   augroup END
+-- ]]
 -- Snippets
 local ls = require("luasnip")
 
